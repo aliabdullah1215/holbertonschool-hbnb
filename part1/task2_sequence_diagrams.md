@@ -1,133 +1,149 @@
 # 2. Sequence Diagrams for API Calls
 
-This document shows the interaction flow for four main API operations in HBnB Evolution.
+This document presents sequence diagrams for four essential API operations in the HBnB Evolution application, showing how requests flow through the system layers.
 
 ---
 
 ## 1. User Registration
 
-When a user signs up, the system validates their information and creates a new account.
+**Overview**: Creates a new user account by validating the provided information and securely storing it in the database.
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant Facade
-    participant UserModel
-    participant Database
+    autonumber
+    participant U as Client
+    participant P as Presentation Layer
+    participant B as Business Logic
+    participant D as Database
 
-    Client->>API: POST /users/register
-    API->>Facade: register_user(data)
-    Facade->>UserModel: validate(data)
-    UserModel->>Database: check_email_exists()
-    Database-->>UserModel: result
+    U->>P: POST /api/v1/users/register<br/>{first_name, last_name, email, password}
     
-    alt email exists
-        UserModel-->>API: error
-        API-->>Client: 409 Conflict
-    else email available
-        UserModel->>Database: save_user()
-        Database-->>UserModel: success
-        UserModel-->>API: user created
-        API-->>Client: 201 Created
-    end
+    Note over P: Validate request format
+    P->>B: register_new_user(user_data)
+    
+    Note over B: Check email format<br/>Verify email uniqueness<br/>Hash password with bcrypt<br/>Generate UUID and timestamps
+    B->>D: INSERT user (id, first_name, last_name, email, password_hash, is_admin, created_at, updated_at)
+    
+    D-->>B: User record created
+    B-->>P: User object (sanitized, no password)
+    P-->>U: 201 Created<br/>{user_id, email, first_name, last_name, created_at}
 ```
 
 ---
 
 ## 2. Place Creation
 
-Authenticated users can create place listings with amenities.
+**Overview**: Enables authenticated users to list a new property with details and location information.
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant Facade
-    participant PlaceModel
-    participant Database
+    autonumber
+    participant U as Client
+    participant P as Presentation Layer
+    participant B as Business Logic
+    participant D as Database
 
-    Client->>API: POST /places
-    API->>API: verify_token()
-    API->>Facade: create_place(data, user_id)
-    Facade->>PlaceModel: validate(data)
-    PlaceModel->>Database: save_place()
-    Database-->>PlaceModel: place_id
+    Note over U: User is authenticated
+    U->>P: POST /api/v1/places<br/>{title, description, price, latitude, longitude, owner_id}
     
-    loop amenities
-        PlaceModel->>Database: link_amenity()
+    P->>P: Verify authentication token
+    Note over P: Extract user_id from token
+    
+    P->>B: create_new_place(place_data, user_id)
+    
+    Note over B: Validate coordinates range<br/>Check price is positive<br/>Verify required fields<br/>Generate UUID, set timestamps
+    B->>D: INSERT place (id, title, description, price, latitude, longitude, owner_id, created_at, updated_at)
+    
+    D-->>B: Place ID returned
+    
+    Note over B: Link amenities if provided
+    loop For each amenity
+        B->>D: INSERT place_amenity (place_id, amenity_id)
     end
     
-    PlaceModel-->>API: place created
-    API-->>Client: 201 Created
+    B-->>P: Place object with amenities
+    P-->>U: 201 Created<br/>{place_id, title, price, owner_id, amenities[]}
 ```
 
 ---
 
 ## 3. Review Submission
 
-Users can submit reviews for places they've visited.
+**Overview**: Allows users to submit ratings and feedback for places they have experienced.
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant Facade
-    participant ReviewModel
-    participant Database
+    autonumber
+    participant U as Client
+    participant P as Presentation Layer
+    participant B as Business Logic
+    participant D as Database
 
-    Client->>API: POST /places/{id}/reviews
-    API->>API: verify_token()
-    API->>Facade: create_review(place_id, user_id, data)
-    Facade->>Database: get_place(place_id)
-    Database-->>Facade: place
+    U->>P: POST /api/v1/places/{place_id}/reviews<br/>{rating, comment}
     
-    alt user is owner
-        Facade-->>API: error
-        API-->>Client: 403 Forbidden
-    else valid
-        Facade->>ReviewModel: create(data)
-        ReviewModel->>Database: save_review()
-        Database-->>ReviewModel: success
-        ReviewModel-->>API: review created
-        API-->>Client: 201 Created
-    end
+    P->>P: Authenticate user
+    Note over P: Get user_id from session
+    
+    P->>B: submit_review(place_id, user_id, review_data)
+    
+    B->>D: SELECT place WHERE id = place_id
+    D-->>B: Place details
+    
+    Note over B: Verify place exists<br/>Check user is not owner<br/>Validate rating (1-5)<br/>Generate UUID, timestamps
+    
+    B->>D: INSERT review (id, place_id, user_id, rating, comment, created_at, updated_at)
+    
+    D-->>B: Review created successfully
+    B-->>P: Review object
+    P-->>U: 201 Created<br/>{review_id, place_id, rating, comment, created_at}
 ```
 
 ---
 
-## 4. Fetching Places
+## 4. Fetching a List of Places
 
-Retrieve a list of places with optional filters.
+**Overview**: Retrieves places based on search criteria, including associated amenities and owner information.
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant API
-    participant Facade
-    participant PlaceModel
-    participant Database
+    autonumber
+    participant U as Client
+    participant P as Presentation Layer
+    participant B as Business Logic
+    participant D as Database
 
-    Client->>API: GET /places?filters
-    API->>Facade: get_places(filters)
-    Facade->>PlaceModel: build_query(filters)
-    PlaceModel->>Database: fetch_places()
-    Database-->>PlaceModel: places[]
+    U->>P: GET /api/v1/places?price_min=100&price_max=500&location=nearby
     
-    loop each place
-        PlaceModel->>Database: get_amenities()
-        Database-->>PlaceModel: amenities[]
+    P->>B: get_places_list(filters)
+    
+    Note over B: Parse and validate filters<br/>Build query conditions
+    B->>D: SELECT * FROM places WHERE price BETWEEN 100 AND 500 AND location criteria met
+    
+    D-->>B: List of matching places
+    
+    loop For each place in results
+        B->>D: SELECT amenities WHERE place_id = ?
+        D-->>B: Amenities list
+        
+        B->>D: SELECT user WHERE id = owner_id
+        D-->>B: Owner info
+        
+        Note over B: Attach amenities and owner to place
     end
     
-    PlaceModel-->>API: places with details
-    API-->>Client: 200 OK
+    B-->>P: Enriched places list
+    P-->>U: 200 OK<br/>[{place_id, title, price, owner, amenities[]}, ...]
 ```
 
 ---
 
-## Notes
+## Summary
 
-- All diagrams follow the 3-layer architecture pattern
-- Authentication is handled at the API layer
-- Business logic validation occurs in the Facade/Model layer
-- Database operations are isolated in the Persistence layer
+These diagrams demonstrate the interaction patterns for core HBnB operations:
+
+- **User Registration**: Focuses on data validation and secure password storage
+- **Place Creation**: Shows authentication flow and relationship building with amenities
+- **Review Submission**: Enforces business rules preventing owners from reviewing their properties
+- **Fetching Places**: Demonstrates query filtering and data aggregation from multiple tables
+
+Each operation follows the layered architecture with clear separation between presentation, business logic, and data persistence concerns.
