@@ -12,14 +12,14 @@ The documentation includes:
 
 ---
 
-## High-Level Architecture (Task 0)
+## High-Level Architecture
 
 ### Purpose
 Provide a conceptual overview of the HBnB system structure and how layers communicate using the Facade pattern.
 
 ### Diagram
 ```mermaid
-%% classDiagram
+classDiagram
 class PresentationLayer {
     <<Layer>>
     +API Endpoints
@@ -39,17 +39,24 @@ class PersistenceLayer {
 
 PresentationLayer --> BusinessLogicLayer : Facade Access
 BusinessLogicLayer --> PersistenceLayer : CRUD Operations
+```
+
+### Notes
+- **Presentation Layer:** Handles communication with clients through API endpoints and services.
+- **Business Logic Layer:** Contains core application logic and domain models.
+- **Persistence Layer:** Manages data storage and retrieval.
+- **Facade Pattern:** Simplifies access between layers and reduces coupling.
 
 ---
 
-## Business Logic Layer - Class Diagram (Task 1)
+## Business Logic Layer - Class Diagram
 
 ### Purpose
 Describe the main domain entities (User, Place, Review, Amenity), their attributes, methods, and relationships.
 
 ### Diagram
 ```mermaid
-%% classDiagram
+classDiagram
 direction LR
 
 class User {
@@ -109,24 +116,30 @@ class Amenity {
   +delete()
 }
 
-%% Relationships
 User "1" --> "0..*" Place : owns
 User "1" --> "0..*" Review : writes
 Place "1" --> "0..*" Review : has
 Place "0..*" -- "0..*" Amenity : includes
+```
+
+### Notes
+- **User:** Represents an application user who can own places and write reviews.
+- **Place:** Represents a listed property owned by a user.
+- **Review:** Represents feedback written by a user about a place.
+- **Amenity:** Represents a feature/service that can be linked to places.
+- All entities contain `id`, `created_at`, and `updated_at` for audit and traceability.
 
 ---
 
-## API Interaction Flow - Sequence Diagrams (Task 2)
+## API Interaction Flow - Sequence Diagrams
 
 ### Purpose
 Illustrate how requests flow through the layered architecture for key operations, showing responsibilities and data flow.
 
-### Diagram
-```mermaid
-%% ## 1. User Registration
+---
 
-**Overview**: Creates a new user account by validating the provided information and securely storing it in the database.
+## 1. User Registration
+**Overview:** Creates a new user account by validating the provided information and securely storing it in the database.
 
 ```mermaid
 sequenceDiagram
@@ -152,8 +165,7 @@ sequenceDiagram
 ---
 
 ## 2. Place Creation
-
-**Overview**: Enables authenticated users to list a new property with details and location information.
+**Overview:** Enables authenticated users to list a new property with details and location information.
 
 ```mermaid
 sequenceDiagram
@@ -188,8 +200,7 @@ sequenceDiagram
 ---
 
 ## 3. Review Submission
-
-**Overview**: Allows users to submit ratings and feedback for places they have experienced.
+**Overview:** Allows users to submit ratings and feedback for places they have experienced.
 
 ```mermaid
 sequenceDiagram
@@ -221,8 +232,7 @@ sequenceDiagram
 ---
 
 ## 4. Fetching a List of Places
-
-**Overview**: Retrieves places based on search criteria, including associated amenities and owner information.
+**Overview:** Retrieves places based on search criteria, including associated amenities and owner information.
 
 ```mermaid
 sequenceDiagram
@@ -258,12 +268,11 @@ sequenceDiagram
 ---
 
 ## Summary
-
 These diagrams demonstrate the interaction patterns for core HBnB operations:
 
-- **User Registration**: Focuses on data validation and secure password storage
-- **Place Creation**: Shows authentication flow and relationship building with amenities
-- **Review Submission**: Enforces business rules preventing owners from reviewing their properties
-- **Fetching Places**: Demonstrates query filtering and data aggregation from multiple tables
+- **User Registration:** Data validation and secure password storage
+- **Place Creation:** Authentication flow and amenities association
+- **Review Submission:** Enforces business rules for review creation
+- **Fetching Places:** Query filtering and data aggregation
 
-Each operation follows the layered architecture with clear separation between presentation, business logic, and data persistence concerns.
+Each operation follows the layered architecture with clear separation between presentation, business logic, and persistence concerns.
