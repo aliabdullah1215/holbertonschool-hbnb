@@ -14,6 +14,13 @@ place_input = api.model("PlaceInput", {
     "amenity_ids": fields.List(fields.String, required=False)
 })
 
+review_small = api.model("ReviewSmall", {
+    "id": fields.String,
+    "text": fields.String,
+    "user_id": fields.String,
+    "place_id": fields.String
+})
+
 place_output = api.model("PlaceOutput", {
     "id": fields.String,
     "name": fields.String,
@@ -22,10 +29,24 @@ place_output = api.model("PlaceOutput", {
     "price": fields.Float,
     "latitude": fields.Float,
     "longitude": fields.Float,
-    "amenity_ids": fields.List(fields.String)
+    "amenity_ids": fields.List(fields.String),
+    "reviews": fields.List(fields.Nested(review_small))
 })
 
+def serialize_review_small(r):
+    return {
+        "id": r.id,
+        "text": r.text,
+        "user_id": r.user_id,
+        "place_id": r.place_id
+    }
+
 def serialize_place(place):
+    try:
+        reviews = facade.list_reviews_by_place(place.id)
+    except ValueError:
+        reviews = []
+
     return {
         "id": place.id,
         "name": place.name,
@@ -34,7 +55,8 @@ def serialize_place(place):
         "price": getattr(place, "price", 0.0),
         "latitude": getattr(place, "latitude", None),
         "longitude": getattr(place, "longitude", None),
-        "amenity_ids": getattr(place, "amenity_ids", [])
+        "amenity_ids": getattr(place, "amenity_ids", []),
+        "reviews": [serialize_review_small(r) for r in reviews]
     }
 
 @api.route("/")
@@ -83,4 +105,3 @@ class PlaceItem(Resource):
             api.abort(400, "Price cannot be negative")
         updated = facade.update_place(place_id, **data)
         return serialize_place(updated)
-
