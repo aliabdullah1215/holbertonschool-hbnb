@@ -58,11 +58,12 @@ Each resource supports standard RESTful endpoints using JSON for request and res
 All API endpoints were tested using **black-box testing** via terminal tools such as `cURL`.
 Both successful use cases and edge cases (invalid input, missing fields, invalid IDs) were validated to ensure the API behaves as expected and returns appropriate HTTP status codes.
 
+
 ## 👥 Team Members
 
-Ali Abdullah Summan
-Ali Hassan Almaghrabi
-Omar Hail Alanzi
+* **Ali Abdullah Summan**
+* **Ali Hassan Almaghrabi**
+* **Omar Hail Alanzi**
 
 
 ## 📌 Notes
