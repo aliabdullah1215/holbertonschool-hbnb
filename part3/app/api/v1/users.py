@@ -5,11 +5,19 @@ api = Namespace('users', description='User operations')
 
 facade = HBnBFacade()
 
+# Model for user creation (includes password)
 user_model = api.model('User', {
     'first_name': fields.String(required=True, description='First name of the user'),
     'last_name': fields.String(required=True, description='Last name of the user'),
     'email': fields.String(required=True, description='Email of the user'),
     'password': fields.String(required=True, description='Password of the user')
+})
+
+# Model for user update (NO password)
+update_user_model = api.model('UpdateUser', {
+    'first_name': fields.String(description='First name of the user'),
+    'last_name': fields.String(description='Last name of the user'),
+    'email': fields.String(description='Email of the user')
 })
 
 
@@ -77,11 +85,11 @@ class UserResource(Resource):
             'email': user.email
         }, 200
 
-    @api.expect(user_model, validate=True)
+    @api.expect(update_user_model, validate=True)
     @api.response(200, 'User updated successfully')
     @api.response(404, 'User not found')
     def put(self, user_id):
-        """Update user"""
+        """Update user (no password update here)"""
         user = facade.update_user(user_id, api.payload)
         if not user:
             return {'error': 'User not found'}, 404
@@ -92,4 +100,3 @@ class UserResource(Resource):
             'last_name': user.last_name,
             'email': user.email
         }, 200
-
