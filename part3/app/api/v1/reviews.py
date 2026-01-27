@@ -31,17 +31,17 @@ class ReviewList(Resource):
             return {'error': 'Place not found'}, 404
 
         # ❌ User cannot review own place
-        if place.owner.id == current_user_id:
+        if place.owner_id == current_user_id:
             return {'error': 'You cannot review your own place.'}, 400
 
         # ❌ User cannot review same place twice
         for review in facade.get_all_reviews():
-            if review.place.id == place.id and review.user.id == current_user_id:
+            if review.place_id == data['place_id'] and review.user_id == current_user_id:
                 return {'error': 'You have already reviewed this place.'}, 400
 
         review = facade.create_review({
             'text': data['text'],
-            'place': place,
+            'place_id': data['place_id'],
             'user_id': current_user_id
         })
 
@@ -66,7 +66,7 @@ class ReviewResource(Resource):
         if not review:
             return {'error': 'Review not found'}, 404
 
-        if review.user.id != current_user_id:
+        if review.user_id != current_user_id:
             return {'error': 'Unauthorized action'}, 403
 
         updated_review = facade.update_review(review_id, api.payload)
@@ -77,7 +77,7 @@ class ReviewResource(Resource):
         }, 200
 
     @jwt_required()
-    @api.response(200, 'Review deleted successfully')
+    @api.response(204, 'Review deleted successfully')
     @api.response(403, 'Unauthorized action')
     @api.response(404, 'Review not found')
     def delete(self, review_id):
@@ -88,8 +88,8 @@ class ReviewResource(Resource):
         if not review:
             return {'error': 'Review not found'}, 404
 
-        if review.user.id != current_user_id:
+        if review.user_id != current_user_id:
             return {'error': 'Unauthorized action'}, 403
 
         facade.delete_review(review_id)
-        return {'message': 'Review deleted successfully'}, 200
+        return {}, 204
