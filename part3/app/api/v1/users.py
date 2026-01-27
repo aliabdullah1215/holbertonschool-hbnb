@@ -1,9 +1,9 @@
-from flask_restx import Namespace, Resource, fields
-from app.services.facade import HBnBFacade
+from flask_reistx import Namespace, Resource, fields
+from app.services import facade
 
 api = Namespace('users', description='User operations')
 
-facade = HBnBFacade()
+
 
 # Model for user creation (includes password)
 user_model = api.model('User', {
