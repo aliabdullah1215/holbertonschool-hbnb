@@ -52,6 +52,8 @@ class InMemoryRepository(Repository):
         for key, value in data.items():
             if hasattr(entity, key):
                 setattr(entity, key, value)
+        if hasattr(entity, "save") and callable(getattr(entity, "save")):
+            entity.save()
         return entity
 
     def delete(self, entity_id):
