@@ -3,6 +3,8 @@ from flask_restx import Api
 from app.api.v1.users import api as users_api
 from app.api.v1.auth import api as auth_api
 from app.api.v1.protected import api as protected_api
+from app.api.v1.places import api as places_api
+api.add_namespace(places_api)
 
 api = Api(
     title='HBnB API',
