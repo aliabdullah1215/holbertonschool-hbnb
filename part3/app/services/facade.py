@@ -1,4 +1,5 @@
-from app.persistence.repository import InMemoryRepository, SQLAlchemyRepository
+from app.persistence.repository import InMemoryRepository
+from app.services.repositories.user_repository import UserRepository
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
@@ -8,14 +9,20 @@ from app.models.amenity import Amenity
 class HBnBFacade:
     def __init__(self):
         # Repositories
-        self.user_repo = SQLAlchemyRepository(User)
+        self.user_repo = UserRepository()
         self.place_repo = InMemoryRepository()
         self.review_repo = InMemoryRepository()
         self.amenity_repo = InMemoryRepository()
 
     # -------- User methods --------
     def create_user(self, user_data):
-        user = User(**user_data)
+        user = User(
+            first_name=user_data['first_name'],
+            last_name=user_data['last_name'],
+            email=user_data['email'],
+            is_admin=user_data.get('is_admin', False)
+        )
+        user.hash_password(user_data['password'])
         self.user_repo.add(user)
         return user
 
@@ -29,10 +36,14 @@ class HBnBFacade:
         return self.user_repo.update(user_id, data)
 
     def get_user_by_email(self, email):
-        return self.user_repo.get_by_attribute('email', email)
+        return self.user_repo.get_user_by_email(email)
 
     # -------- Place methods --------
     def create_place(self, data):
+        """
+        data must contain:
+        title, description, price, latitude, longitude, owner_id
+        """
         owner = self.get_user(data['owner_id'])
         if not owner:
             raise ValueError("Owner not found")
@@ -62,6 +73,10 @@ class HBnBFacade:
 
     # -------- Review methods --------
     def create_review(self, data):
+        """
+        data must contain:
+        text, place_id, user_id
+        """
         review = Review(
             text=data['text'],
             place_id=data['place_id'],
@@ -82,7 +97,7 @@ class HBnBFacade:
     def delete_review(self, review_id):
         return self.review_repo.delete(review_id)
 
-    # -------- Amenity methods --------
+    # -------- Amenity methods (Admin only via API) --------
     def create_amenity(self, name):
         amenity = Amenity(name)
         self.amenity_repo.add(amenity)
