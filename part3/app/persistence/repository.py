@@ -1,49 +1,22 @@
-from abc import ABC, abstractmethod
+from app import db
 
 
-class Repository(ABC):
-    """Abstract base class for repositories."""
+class SQLAlchemyRepository(Repository):
+    """SQLAlchemy-based repository implementation."""
 
-    @abstractmethod
-    def add(self, entity):
-        pass
-
-    @abstractmethod
-    def get(self, entity_id):
-        pass
-
-    @abstractmethod
-    def get_all(self):
-        pass
-
-    @abstractmethod
-    def update(self, entity_id, data):
-        pass
-
-    @abstractmethod
-    def delete(self, entity_id):
-        pass
-
-    @abstractmethod
-    def get_by_attribute(self, attribute, value):
-        pass
-
-
-class InMemoryRepository(Repository):
-    """Simple in-memory repository using a dictionary."""
-
-    def __init__(self):
-        self.storage = {}
+    def __init__(self, model):
+        self.model = model
 
     def add(self, entity):
-        self.storage[str(entity.id)] = entity
+        db.session.add(entity)
+        db.session.commit()
         return entity
 
     def get(self, entity_id):
-        return self.storage.get(str(entity_id))
+        return self.model.query.get(entity_id)
 
     def get_all(self):
-        return list(self.storage.values())
+        return self.model.query.all()
 
     def update(self, entity_id, data):
         entity = self.get(entity_id)
@@ -52,14 +25,16 @@ class InMemoryRepository(Repository):
         for key, value in data.items():
             if hasattr(entity, key):
                 setattr(entity, key, value)
+        db.session.commit()
         return entity
 
     def delete(self, entity_id):
-        return self.storage.pop(str(entity_id), None)
+        entity = self.get(entity_id)
+        if not entity:
+            return None
+        db.session.delete(entity)
+        db.session.commit()
+        return entity
 
     def get_by_attribute(self, attribute, value):
-        for entity in self.storage.values():
-            if getattr(entity, attribute, None) == value:
-                return entity
-        return None
-
+        return self.model.query.filter_by(**{attribute: value}).first()
