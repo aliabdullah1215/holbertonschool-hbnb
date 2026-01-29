@@ -33,17 +33,21 @@ class HBnBFacade:
         return self.user_repo.get_all()
 
     def update_user(self, user_id, data):
+        # Hash password if updating
+        if "password" in data:
+            temp_user = User()
+            temp_user.hash_password(data["password"])
+            data["password"] = temp_user.password
         return self.user_repo.update(user_id, data)
 
     def get_user_by_email(self, email):
         return self.user_repo.get_user_by_email(email)
 
+    def delete_user(self, user_id):
+        return self.user_repo.delete(user_id)
+
     # -------- Place methods --------
     def create_place(self, data):
-        """
-        data must contain:
-        title, description, price, latitude, longitude, owner_id
-        """
         owner = self.get_user(data['owner_id'])
         if not owner:
             raise ValueError("Owner not found")
@@ -73,10 +77,6 @@ class HBnBFacade:
 
     # -------- Review methods --------
     def create_review(self, data):
-        """
-        data must contain:
-        text, place_id, user_id
-        """
         review = Review(
             text=data['text'],
             place_id=data['place_id'],
@@ -97,7 +97,7 @@ class HBnBFacade:
     def delete_review(self, review_id):
         return self.review_repo.delete(review_id)
 
-    # -------- Amenity methods (Admin only via API) --------
+    # -------- Amenity methods --------
     def create_amenity(self, name):
         amenity = Amenity(name)
         self.amenity_repo.add(amenity)
