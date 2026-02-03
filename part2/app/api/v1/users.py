@@ -16,7 +16,7 @@ user_model = api.model('User', {
 class UserList(Resource):
     @api.expect(user_model, validate=True)
     @api.response(201, 'User successfully created')
-    @api.response(400, 'Email already registered')
+    @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new user"""
         data = api.payload
@@ -24,13 +24,16 @@ class UserList(Resource):
         if facade.get_user_by_email(data['email']):
             return {'error': 'Email already registered'}, 400
 
-        user = facade.create_user(data)
-        return {
-            'id': user.id,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email
-        }, 201
+        try:
+            user = facade.create_user(data)
+            return {
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email
+            }, 201
+        except ValueError as e:
+            return {'error': str(e)}, 400
 
     @api.response(200, 'Users retrieved successfully')
     def get(self):
@@ -67,16 +70,19 @@ class UserResource(Resource):
     @api.expect(user_model, validate=True)
     @api.response(200, 'User updated successfully')
     @api.response(404, 'User not found')
+    @api.response(400, 'Invalid input data')
     def put(self, user_id):
         """Update user"""
-        user = facade.update_user(user_id, api.payload)
-        if not user:
-            return {'error': 'User not found'}, 404
+        try:
+            user = facade.update_user(user_id, api.payload)
+            if not user:
+                return {'error': 'User not found'}, 404
 
-        return {
-            'id': user.id,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email
-        }, 200
-
+            return {
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email
+            }, 200
+        except ValueError as e:
+            return {'error': str(e)}, 400
