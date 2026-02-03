@@ -6,12 +6,23 @@ from app.models.review import Review
 
 
 class HBnBFacade:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """ضمان وجود نسخة واحدة فقط من الـ Facade (Singleton)"""
+        if not cls._instance:
+            cls._instance = super(HBnBFacade, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        # Repositories
-        self.user_repo = InMemoryRepository()
-        self.amenity_repo = InMemoryRepository()
-        self.place_repo = InMemoryRepository()
-        self.review_repo = InMemoryRepository()
+        """تهيأة المستودعات مرة واحدة فقط"""
+        if not hasattr(self, '_initialized'):
+            # Repositories
+            self.user_repo = InMemoryRepository()
+            self.amenity_repo = InMemoryRepository()
+            self.place_repo = InMemoryRepository()
+            self.review_repo = InMemoryRepository()
+            self._initialized = True
 
     # -------- User methods --------
     def create_user(self, user_data):
@@ -57,6 +68,7 @@ class HBnBFacade:
         owner_id = place_data.get('owner_id')
         owner = self.get_user(owner_id)
         if not owner:
+            # تم تعديل الرسالة لتطابق ما يتوقعه الاختبار (أو العكس)
             raise ValueError("owner not found")
 
         place = Place(
@@ -90,35 +102,39 @@ class HBnBFacade:
         if not place:
             return None
 
-        if 'title' in place_data:
-            place.title = place_data['title']
-        if 'description' in place_data:
-            place.description = place_data['description']
-        if 'price' in place_data:
-            place.price = place_data['price']
-        if 'latitude' in place_data:
-            place.latitude = place_data['latitude']
-        if 'longitude' in place_data:
-            place.longitude = place_data['longitude']
+        # استخدام الـ Setters الموجودة في الـ Model للتحقق من البيانات
+        try:
+            if 'title' in place_data:
+                place.title = place_data['title']
+            if 'description' in place_data:
+                place.description = place_data['description']
+            if 'price' in place_data:
+                place.price = place_data['price']
+            if 'latitude' in place_data:
+                place.latitude = place_data['latitude']
+            if 'longitude' in place_data:
+                place.longitude = place_data['longitude']
 
-        if 'owner_id' in place_data:
-            owner = self.get_user(place_data['owner_id'])
-            if not owner:
-                raise ValueError("owner not found")
-            place.owner = owner
+            if 'owner_id' in place_data:
+                owner = self.get_user(place_data['owner_id'])
+                if not owner:
+                    raise ValueError("owner not found")
+                place.owner = owner
 
-        if 'amenities' in place_data:
-            new_ids = place_data['amenities'] or []
-            new_amenities = []
-            for amenity_id in new_ids:
-                amenity = self.get_amenity(amenity_id)
-                if not amenity:
-                    raise ValueError("amenity not found")
-                new_amenities.append(amenity)
-            place.amenities = new_amenities
+            if 'amenities' in place_data:
+                new_ids = place_data['amenities'] or []
+                new_amenities = []
+                for amenity_id in new_ids:
+                    amenity = self.get_amenity(amenity_id)
+                    if not amenity:
+                        raise ValueError("amenity not found")
+                    new_amenities.append(amenity)
+                place.amenities = new_amenities
 
-        self.place_repo.update(place_id, place)
-        return place
+            self.place_repo.update(place_id, place)
+            return place
+        except ValueError as e:
+            raise e
 
     # -------- Review methods --------
     def create_review(self, review_data):
