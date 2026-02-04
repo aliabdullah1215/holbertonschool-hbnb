@@ -31,10 +31,11 @@ class HBnBFacade:
         return self.user_repo.get_all()
 
     def update_user(self, user_id, data):
+        # تشفير كلمة المرور إذا كانت موجودة في بيانات التحديث
         if "password" in data:
-            temp_user = User()
-            temp_user.hash_password(data["password"])
-            data["password"] = temp_user.password
+            user_to_hash = User()
+            user_to_hash.hash_password(data["password"])
+            data["password"] = user_to_hash.password
         return self.user_repo.update(user_id, data)
 
     def get_user_by_email(self, email):
@@ -45,9 +46,11 @@ class HBnBFacade:
 
     # -------- Place methods --------
     def create_place(self, data):
+        # فصل المرفقات عن بيانات المكان الأساسية
         amenities_ids = data.pop('amenities', [])
         place = Place(**data)
         
+        # ربط المرفقات بالمكان (Many-to-Many)
         for amenity_id in amenities_ids:
             amenity = self.get_amenity(amenity_id)
             if amenity:
@@ -65,9 +68,11 @@ class HBnBFacade:
     def update_place(self, place_id, data):
         return self.place_repo.update(place_id, data)
 
+    def delete_place(self, place_id):
+        return self.place_repo.delete(place_id)
+
     # -------- Amenity methods --------
     def create_amenity(self, amenity_data):
-        # التأكد من تمرير البيانات كقاموس للموديل
         if isinstance(amenity_data, dict):
             amenity = Amenity(**amenity_data)
         else:
@@ -87,10 +92,23 @@ class HBnBFacade:
 
     # -------- Review methods --------
     def create_review(self, data):
-        # تم التعديل هنا ليشمل 'rating' وهو سبب الخطأ 500 السابق
+        # 1. التحقق من أن المستخدم لا يقيم مكانه (خط دفاع إضافي)
+        place = self.get_place(data['place_id'])
+        if not place:
+            raise ValueError("Place not found")
+        
+        if place.owner_id == data['user_id']:
+            raise ValueError("You cannot review your own place")
+
+        # 2. التحقق من عدم تكرار التقييم لنفس المكان من نفس المستخدم
+        existing_reviews = self.get_all_reviews()
+        for r in existing_reviews:
+            if r.place_id == data['place_id'] and r.user_id == data['user_id']:
+                raise ValueError("You have already reviewed this place")
+
         review = Review(
             text=data['text'],
-            rating=data.get('rating'), # إضافة الـ rating هنا ضرورية
+            rating=data.get('rating'),
             place_id=data['place_id'],
             user_id=data['user_id']
         )
