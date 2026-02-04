@@ -96,20 +96,15 @@ class HBnBFacade:
     def delete_review(self, review_id):
         return self.review_repo.delete(review_id)
 
-    # -------- Amenity methods --------
-    def create_amenity(self, name):
-        amenity = Amenity(name=name)
+# -------- Amenity methods --------
+    def create_amenity(self, amenity_data):
+        """Create a new amenity from dictionary data"""
+        # إذا كانت البيانات قادمة كقاموس من الـ API
+        if isinstance(amenity_data, dict):
+            amenity = Amenity(**amenity_data)
+        else:
+            # لدعم الاستدعاء المباشر بالنص إذا لزم الأمر
+            amenity = Amenity(name=amenity_data)
+            
         self.amenity_repo.add(amenity)
         return amenity
-
-    def get_amenity(self, amenity_id):
-        return self.amenity_repo.get(amenity_id)
-
-    def get_all_amenities(self):
-        return self.amenity_repo.get_all()
-
-    def update_amenity(self, amenity_id, data):
-        return self.amenity_repo.update(amenity_id, data)
-
-    def delete_amenity(self, amenity_id):
-        return self.amenity_repo.delete(amenity_id)
