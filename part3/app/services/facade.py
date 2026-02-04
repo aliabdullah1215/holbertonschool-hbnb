@@ -45,54 +45,31 @@ class HBnBFacade:
     def delete_user(self, user_id):
         return self.user_repo.delete(user_id)
 
-# -------- Place methods --------
-    def create_place(self, data):
-        # التأكد من وجود المالك أولاً
+   # -------- create place --------\
+
+def create_place(self, data):
+        # 1. التأكد من وجود المالك
         owner = self.get_user(data['owner_id'])
         if not owner:
             raise ValueError("Owner not found")
 
-        # 1. استخراج قائمة الـ IDs الخاصة بالمرافق من البيانات
-        # نستخدم pop لسحبها حتى لا تسبب مشاكل عند إنشاء كائن Place
+        # 2. سحب المرافق قبل إنشاء كائن Place
         amenities_ids = data.pop('amenities', [])
 
-        # 2. إنشاء كائن المكان بالبيانات الأساسية
+        # 3. إنشاء كائن المكان
         place = Place(**data)
         
-        # 3. ربط المرافق بالمكان (علاقة Many-to-Many)
-        # هذا الجزء هو الذي يضمن التكامل بين الجداول
+        # 4. ربط المرافق (هنا قد يحدث الخطأ إذا لم يكن الاسم مطابقاً في الموديل)
         for amenity_id in amenities_ids:
             amenity = self.get_amenity(amenity_id)
             if amenity:
+                # تأكد أن اسم الحقل في موديل Place هو amenities
                 place.amenities.append(amenity)
 
         self.place_repo.add(place)
         return place
 
-    def get_place(self, place_id):
-        return self.place_repo.get(place_id)
 
-    def get_all_places(self):
-        return self.place_repo.get_all()
-
-    def update_place(self, place_id, data):
-        # في حال تم إرسال مرافق جديدة للتحديث
-        if 'amenities' in data:
-            amenities_ids = data.pop('amenities')
-            place = self.get_place(place_id)
-            if place:
-                place.amenities = [] # مسح المرافق القديمة
-                for amenity_id in amenities_ids:
-                    amenity = self.get_amenity(amenity_id)
-                    if amenity:
-                        place.amenities.append(amenity)
-        
-        return self.place_repo.update(place_id, data)
-
-    def delete_place(self, place_id):
-        return self.place_repo.delete(place_id)
-
-    
     # -------- Review methods --------
     def create_review(self, data):
         review = Review(
