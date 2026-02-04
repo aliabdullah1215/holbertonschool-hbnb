@@ -1,12 +1,10 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from flask import request
 from app.services.facade import HBnBFacade
 
 api = Namespace('reviews', description='Review operations')
 facade = HBnBFacade()
 
-# تم إزالة user_id من هنا لأننا سنأخذه من التوكن آلياً
 review_model = api.model('Review', {
     'place_id': fields.String(required=True, description='ID of the place'),
     'text': fields.String(required=True, description='Review text'),
@@ -45,16 +43,16 @@ class ReviewList(Resource):
         if not place:
             return {'error': 'Place not found'}, 404
 
-        # 2. منطق الأعمال: منع المالك من تقييم مكانه الخاص
-        if place.owner_id == current_user_id:
+        # 2. منع المالك من تقييم مكانه الخاص (تحويل لـ string لضمان دقة المقارنة)
+        if str(place.owner_id) == str(current_user_id):
             return {'error': 'You cannot review your own place.'}, 400
 
-        # 3. منطق الأعمال: منع التكرار (مراجعة واحدة لكل مستخدم لكل مكان)
+        # 3. منع التكرار (مراجعة واحدة لكل مستخدم لكل مكان)
         all_reviews = facade.get_all_reviews()
-        if any(r.place_id == data['place_id'] and r.user_id == current_user_id for r in all_reviews):
+        if any(str(r.place_id) == str(data['place_id']) and str(r.user_id) == str(current_user_id) for r in all_reviews):
             return {'error': 'You have already reviewed this place.'}, 400
 
-        # 4. إضافة الـ user_id للبيانات قبل إرسالها للـ facade
+        # 4. ربط التقييم بالمستخدم صاحب التوكن آلياً
         data['user_id'] = current_user_id
         
         try:
@@ -98,8 +96,8 @@ class ReviewResource(Resource):
         if not review:
             return {'error': 'Review not found'}, 404
 
-        # التحقق من الصلاحية: صاحب التقييم أو الأدمن فقط
-        if not is_admin and review.user_id != current_user_id:
+        # المقارنة باستخدام string
+        if not is_admin and str(review.user_id) != str(current_user_id):
             return {'error': 'Unauthorized action'}, 403
 
         facade.update_review(review_id, api.payload)
@@ -119,8 +117,7 @@ class ReviewResource(Resource):
         if not review:
             return {'error': 'Review not found'}, 404
 
-        # التحقق من الصلاحية: صاحب التقييم أو الأدمن فقط
-        if not is_admin and review.user_id != current_user_id:
+        if not is_admin and str(review.user_id) != str(current_user_id):
             return {'error': 'Unauthorized action'}, 403
 
         facade.delete_review(review_id)
