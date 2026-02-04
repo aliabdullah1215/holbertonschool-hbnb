@@ -18,7 +18,6 @@ class AmenityList(Resource):
     @jwt_required()
     def post(self):
         """Create a new amenity (Admin only)"""
-        # التحقق من صلاحيات الأدمن
         claims = get_jwt()
         if not claims.get('is_admin'):
             return {'error': 'Admin privileges required'}, 403
@@ -51,7 +50,6 @@ class AmenityResource(Resource):
     @jwt_required()
     def put(self, amenity_id):
         """Update an amenity's information (Admin only)"""
-        # التحقق من صلاحيات الأدمن
         claims = get_jwt()
         if not claims.get('is_admin'):
             return {'error': 'Admin privileges required'}, 403
@@ -61,3 +59,18 @@ class AmenityResource(Resource):
         if not updated_amenity:
             return {'error': 'Amenity not found'}, 404
         return {'message': 'Amenity updated successfully'}, 200
+
+    @api.response(200, 'Amenity deleted successfully')
+    @api.response(403, 'Admin privileges required')
+    @api.response(404, 'Amenity not found')
+    @jwt_required()
+    def delete(self, amenity_id):
+        """Delete an amenity (Admin only)"""
+        claims = get_jwt()
+        if not claims.get('is_admin'):
+            return {'error': 'Admin privileges required'}, 403
+
+        deleted = facade.delete_amenity(amenity_id)
+        if not deleted:
+            return {'error': 'Amenity not found'}, 404
+        return {'message': 'Amenity deleted successfully'}, 200
