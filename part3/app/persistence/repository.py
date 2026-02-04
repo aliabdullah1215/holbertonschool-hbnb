@@ -1,3 +1,5 @@
+# app/persistence/repository.py
+
 from app import db
 
 class Repository:
@@ -30,9 +32,13 @@ class SQLAlchemyRepository(Repository):
         self.model = model
 
     def add(self, obj):
-        db.session.add(obj)
-        db.session.commit()
-        return obj
+        try:
+            db.session.add(obj)
+            db.session.commit()
+            return obj
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def get(self, obj_id):
         return self.model.query.get(obj_id)
@@ -41,34 +47,44 @@ class SQLAlchemyRepository(Repository):
         return self.model.query.all()
 
     def update(self, obj_id, data):
+        """
+        تحديث الكائن. 
+        إذا كان data قاموساً، يتم تحديث الحقول. 
+        إذا كان data هو الكائن نفسه (معدل مسبقاً في Facade)، يتم عمل commit فقط.
+        """
         obj = self.get(obj_id)
         if not obj:
             return None
         
-        # التعديل الجوهري هنا:
-        # إذا كانت data قاموساً (تحديث عادي)
-        if isinstance(data, dict):
-            for key, value in data.items():
-                if hasattr(obj, key):
-                    setattr(obj, key, value)
-        # إذا كانت data هي الكائن نفسه (تحديث علاقات مثل Amenities)
-        # التغييرات تمت بالفعل في الـ Facade، نحتاج فقط للـ commit
-        
         try:
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            raise
+            # إذا أرسلنا قاموساً (تحديث حقول نصية مثلاً)
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    if hasattr(obj, key):
+                        setattr(obj, key, value)
             
-        return obj
+            # إذا أرسلنا الكائن نفسه، فالقيم تم تغييرها في الـ Facade 
+            # ولا نحتاج لعمل setattr، الـ SQLAlchemy سيكتشف التغييرات تلقائياً
+            
+            db.session.commit()
+            return obj
+        except Exception as e:
+            db.session.rollback()
+            # لضمان معرفة سبب الخطأ في نافذة السيرفر
+            print(f"Update Error: {e}")
+            raise e
 
     def delete(self, obj_id):
         obj = self.get(obj_id)
         if not obj:
             return None
-        db.session.delete(obj)
-        db.session.commit()
-        return obj
+        try:
+            db.session.delete(obj)
+            db.session.commit()
+            return obj
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def get_by_attribute(self, attr_name, attr_value):
         return self.model.query.filter_by(**{attr_name: attr_value}).first()
