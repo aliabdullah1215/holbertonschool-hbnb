@@ -44,10 +44,22 @@ class SQLAlchemyRepository(Repository):
         obj = self.get(obj_id)
         if not obj:
             return None
-        for key, value in data.items():
-            if hasattr(obj, key):
-                setattr(obj, key, value)
-        db.session.commit()
+        
+        # التعديل الجوهري هنا:
+        # إذا كانت data قاموساً (تحديث عادي)
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if hasattr(obj, key):
+                    setattr(obj, key, value)
+        # إذا كانت data هي الكائن نفسه (تحديث علاقات مثل Amenities)
+        # التغييرات تمت بالفعل في الـ Facade، نحتاج فقط للـ commit
+        
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+            
         return obj
 
     def delete(self, obj_id):
