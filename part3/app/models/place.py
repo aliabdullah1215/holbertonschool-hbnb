@@ -24,10 +24,10 @@ class Place(BaseModel):
     # تغيير النوع إلى String(36) ليتوافق مع UUID الخاص بجدول المستخدمين
     owner_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
 
-    # نستخدم اسم الكلاس كنص "Review" لمنع الاستيراد الدائري
+# في ملف place.py
     reviews = relationship(
         "Review",
-        backref="place",
+        back_populates="place",  # الربط المتبادل بالاسم
         lazy="select",
         cascade="all, delete-orphan"
     )
