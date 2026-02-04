@@ -10,28 +10,33 @@ class Review(BaseModel):
     text = db.Column(db.String(1024), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
 
-    # يجب أن يكون النوع String(36) ليتوافق مع UUID في جداول User و Place
+    # معرفات العلاقات (UUIDs)
     place_id = db.Column(db.String(36), db.ForeignKey("places.id"), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
 
-    # استخدام back_populates يضمن الربط الصحيح مع الطرف الآخر من العلاقة
-    # نستخدم اسم الكلاس كنص "Place" و "User" لتجنب الاستيراد الدائري (Circular Import)
+    # العلاقات مع الجداول الأخرى
     place = db.relationship("Place", back_populates="reviews")
     user = db.relationship("User", back_populates="reviews")
 
     def __init__(self, **kwargs):
         """
-        Initialize Review
-        نستخدم kwargs للسماح لـ SQLAlchemy و BaseModel بمعالجة البيانات تلقائياً
+        Initialize Review with validation
         """
-        if 'rating' in kwargs:
-            rating = kwargs.get('rating')
-            if not isinstance(rating, int) or not (1 <= rating <= 5):
-                raise ValueError("rating must be an integer between 1 and 5")
-        
-        if 'text' in kwargs:
-            text = kwargs.get('text')
-            if not text or not isinstance(text, str):
-                raise ValueError("text must be a non-empty string")
+        # التحقق من صحة التقييم قبل الإنشاء
+        rating = kwargs.get('rating')
+        if rating is not None:
+            try:
+                rating = int(rating)
+                if not (1 <= rating <= 5):
+                    raise ValueError("Rating must be between 1 and 5")
+                kwargs['rating'] = rating
+            except (ValueError, TypeError):
+                raise ValueError("Rating must be an integer between 1 and 5")
+
+        # التحقق من وجود النص
+        text = kwargs.get('text')
+        if text is not None:
+            if not isinstance(text, str) or len(text.strip()) == 0:
+                raise ValueError("Text must be a non-empty string")
 
         super().__init__(**kwargs)
