@@ -30,9 +30,26 @@ class BaseModel(db.Model):
         nullable=False
     )
 
+    def __init__(self, **kwargs):
+        """Initialize the model with attributes from kwargs"""
+        super().__init__()
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        
+        # التأكد من وجود ID في حال لم يتم توفيره
+        if not self.id:
+            self.id = str(uuid.uuid4())
+
     def save(self):
-        """Update the updated_at timestamp"""
+        """Save the object to the database and update timestamp"""
         self.updated_at = datetime.utcnow()
+        db.session.add(self)  # تأكيد إضافة الكائن للجلسة
+        db.session.commit()
+
+    def delete(self):
+        """Delete the object from the database"""
+        db.session.delete(self)
         db.session.commit()
 
     def update(self, data):
@@ -41,7 +58,8 @@ class BaseModel(db.Model):
             raise TypeError("update() expects a dictionary")
 
         for key, value in data.items():
-            if hasattr(self, key):
+            # نتجنب تحديث الحقول الأساسية يدوياً لضمان سلامة البيانات
+            if hasattr(self, key) and key not in ['id', 'created_at', 'updated_at']:
                 setattr(self, key, value)
 
         self.save()
