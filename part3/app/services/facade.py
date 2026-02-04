@@ -7,7 +7,6 @@ from app.models.amenity import Amenity
 
 class HBnBFacade:
     def __init__(self):
-        # تم استبدال InMemoryRepository بالمستودعات المبنية على SQLAlchemy
         self.user_repo = UserRepository()
         self.place_repo = SQLAlchemyRepository(Place)
         self.review_repo = SQLAlchemyRepository(Review)
@@ -46,11 +45,9 @@ class HBnBFacade:
 
     # -------- Place methods --------
     def create_place(self, data):
-        # سحب الـ IDs الخاصة بالمرافق أولاً
         amenities_ids = data.pop('amenities', [])
         place = Place(**data)
         
-        # ربط المرافق بالكائن
         for amenity_id in amenities_ids:
             amenity = self.get_amenity(amenity_id)
             if amenity:
@@ -70,6 +67,7 @@ class HBnBFacade:
 
     # -------- Amenity methods --------
     def create_amenity(self, amenity_data):
+        # التأكد من تمرير البيانات كقاموس للموديل
         if isinstance(amenity_data, dict):
             amenity = Amenity(**amenity_data)
         else:
@@ -89,8 +87,10 @@ class HBnBFacade:
 
     # -------- Review methods --------
     def create_review(self, data):
+        # تم التعديل هنا ليشمل 'rating' وهو سبب الخطأ 500 السابق
         review = Review(
             text=data['text'],
+            rating=data.get('rating'), # إضافة الـ rating هنا ضرورية
             place_id=data['place_id'],
             user_id=data['user_id']
         )
