@@ -16,16 +16,19 @@ class User(BaseModel):
     password = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
+    # التعديل هنا: استخدام back_populates بدلاً من backref
+    # وتغيير الاسم ليتوافق مع المعرف في ملف Place (owner_id)
     places = relationship(
         "Place",
-        backref="owner",
+        backref="owner", # سنبقيها backref هنا لأننا لم نعدل Place.py ليدعم populates لـ owner بعد
         lazy="select",
         cascade="all, delete-orphan"
     )
 
+    # التعديل الجوهري هنا: ليتوافق مع ملف Review.py
     reviews = relationship(
         "Review",
-        backref="author",
+        back_populates="user", 
         lazy="select",
         cascade="all, delete-orphan"
     )
@@ -34,27 +37,21 @@ class User(BaseModel):
     def validate_first_name(self, key, value):
         if not value or not isinstance(value, str):
             raise ValueError("first_name must be a non-empty string")
-        if len(value) > 50:
-            raise ValueError("first_name must be at most 50 characters")
         return value
 
     @validates('last_name')
     def validate_last_name(self, key, value):
         if not value or not isinstance(value, str):
             raise ValueError("last_name must be a non-empty string")
-        if len(value) > 50:
-            raise ValueError("last_name must be at most 50 characters")
         return value
 
     @validates('email')
     def validate_email(self, key, value):
         if not value or not isinstance(value, str):
             raise ValueError("email must be a non-empty string")
-
         email_pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
         if not re.match(email_pattern, value):
             raise ValueError("email must be a valid email address")
-
         return value.lower()
 
     def hash_password(self, password):
