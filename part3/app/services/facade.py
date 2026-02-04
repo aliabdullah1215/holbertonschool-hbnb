@@ -32,7 +32,6 @@ class HBnBFacade:
         return self.user_repo.get_all()
 
     def update_user(self, user_id, data):
-        # تشفير كلمة المرور إذا كانت ضمن البيانات المراد تحديثها
         if "password" in data:
             temp_user = User()
             temp_user.hash_password(data["password"])
@@ -45,10 +44,13 @@ class HBnBFacade:
     def delete_user(self, user_id):
         return self.user_repo.delete(user_id)
 
-def create_place(self, data):
+    # -------- Place methods --------
+    def create_place(self, data):
+        # سحب الـ IDs الخاصة بالمرافق أولاً
         amenities_ids = data.pop('amenities', [])
         place = Place(**data)
         
+        # ربط المرافق بالكائن
         for amenity_id in amenities_ids:
             amenity = self.get_amenity(amenity_id)
             if amenity:
@@ -57,11 +59,34 @@ def create_place(self, data):
         self.place_repo.add(place)
         return place
 
+    def get_place(self, place_id):
+        return self.place_repo.get(place_id)
+
+    def get_all_places(self):
+        return self.place_repo.get_all()
+
+    def update_place(self, place_id, data):
+        return self.place_repo.update(place_id, data)
+
+    # -------- Amenity methods --------
+    def create_amenity(self, amenity_data):
+        if isinstance(amenity_data, dict):
+            amenity = Amenity(**amenity_data)
+        else:
+            amenity = Amenity(name=amenity_data)
+            
+        self.amenity_repo.add(amenity)
+        return amenity
+
     def get_amenity(self, amenity_id):
         return self.amenity_repo.get(amenity_id)
 
     def get_all_amenities(self):
         return self.amenity_repo.get_all()
+
+    def update_amenity(self, amenity_id, data):
+        return self.amenity_repo.update(amenity_id, data)
+
     # -------- Review methods --------
     def create_review(self, data):
         review = Review(
@@ -83,16 +108,3 @@ def create_place(self, data):
 
     def delete_review(self, review_id):
         return self.review_repo.delete(review_id)
-
-# -------- Amenity methods --------
-    def create_amenity(self, amenity_data):
-        """Create a new amenity from dictionary data"""
-        # إذا كانت البيانات قادمة كقاموس من الـ API
-        if isinstance(amenity_data, dict):
-            amenity = Amenity(**amenity_data)
-        else:
-            # لدعم الاستدعاء المباشر بالنص إذا لزم الأمر
-            amenity = Amenity(name=amenity_data)
-            
-        self.amenity_repo.add(amenity)
-        return amenity
