@@ -1,20 +1,47 @@
 import pytest
 from app import create_app, db
+from app.models.user import User  # تأكد أن هذا هو المسار الصحيح لموديل المستخدم لديك
 
 @pytest.fixture
 def client():
-    app = create_app('config.TestingConfig') # نسخة خاصة للاختبار
+    # استخدام اسم البيئة 'testing' كما هو معرف في قاموس الإعدادات بملف config.py
+    app = create_app('testing') 
+    
     with app.test_client() as client:
         with app.app_context():
+            # إنشاء الجداول في قاعدة بيانات الذاكرة
             db.create_all()
+
+            # إنشاء مستخدم مسؤول (Admin) يدويًا لأن قاعدة بيانات الاختبار تبدأ فارغة تمامًا
+            admin_user = User(
+                email="admin@hbnb.io",
+                first_name="Admin",
+                last_name="HBnB",
+                is_admin=True
+            )
+            # تشفير كلمة المرور (تأكد أن الموديل يحتوي على هذه الدالة)
+            admin_user.hash_password("admin1234")
+            
+            db.session.add(admin_user)
+            db.session.commit()
+
             yield client
+
+            # تنظيف قاعدة البيانات بعد الانتهاء
+            db.session.remove()
             db.drop_all()
 
 def test_login_success(client):
-    # نرسل طلب تسجيل دخول وهمي
+    """اختبار تسجيل الدخول بنجاح للمستخدم المسؤول والتحقق من التوكن"""
     response = client.post('/api/v1/auth/login', json={
         "email": "admin@hbnb.io",
         "password": "admin1234"
     })
+    
+    # في حال فشل الاختبار، سيطبع التيرمنال رد السيرفر للمساعدة في التشخيص
+    if response.status_code != 200:
+        print(f"\nخطأ في الرد: {response.get_json()}")
+
     assert response.status_code == 200
-    assert "access_token" in response.get_json()
+    data = response.get_json()
+    assert "access_token" in data
