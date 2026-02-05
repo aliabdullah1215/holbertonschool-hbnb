@@ -1,8 +1,33 @@
-# 🏠 HBnB – Part 2: Business Logic & API
+---
 
-## 📆 Project Structure
+# 🏠 HBnB Project – Part 3
 
-This project follows a modular structure to ensure maintainability and scalability. The current setup implements the foundation for the Business Logic Layer (BLL), the API, and the in-memory persistence layer.
+**Enhanced Backend with Authentication & Database Integration**
+
+## 📌 Overview
+
+Part 3 of the **HBnB Project** focuses on transforming the backend from a prototype-level implementation into a **secure, scalable, and production-ready system**.
+This phase introduces **JWT-based authentication**, **role-based authorization**, and **persistent data storage** using **SQLAlchemy** with **SQLite** for development and **MySQL** for production readiness.
+
+The project follows clean architecture principles, including the **Repository Pattern**, **Facade Pattern**, and clear separation between API, services, and persistence layers.
+
+---
+
+## 🎯 Objectives
+
+By completing this part, the backend will:
+
+* Implement **JWT Authentication** using `flask-jwt-extended`
+* Enforce **Role-Based Access Control (RBAC)** with admin privileges
+* Replace in-memory storage with **SQLAlchemy ORM**
+* Persist data using **SQLite** (development) and prepare for **MySQL** (production)
+* Secure sensitive operations (users, places, reviews, amenities)
+* Design and visualize the database schema using **Mermaid.js**
+* Ensure data integrity, validation, and scalability
+
+---
+
+## 🧱 Project Architecture
 
 ```
 ├── API_TESTING.md
@@ -51,20 +76,88 @@ This project follows a modular structure to ensure maintainability and scalabili
     └── test_reviews.py
 ```
 
-## 🧠 Key Concepts Implemented
+---
 
-* ✅ Modular application structure
-* ✅ Flask app factory pattern (`create_app`)
-* ✅ flask-restx setup with Swagger UI (`/api/v1/`)
-* ✅ In-memory repository following the Repository Pattern
-* ✅ Facade layer to decouple API and logic
-* ✅ Project ready for future integration with SQLAlchemy
+## 🔐 Authentication & Authorization
 
-### 📦 Entities and Responsibilities
+### Authentication
+
+* Implemented using **JWT (JSON Web Tokens)**
+* Users authenticate via:
+
+  ```
+  POST /api/v1/auth/login
+  ```
+* A valid JWT is required for protected endpoints
+
+### Authorization
+
+* Role-based access using `is_admin`
+* Two roles:
+
+  * **Regular User**
+  * **Administrator**
+
+---
+
+## 👤 User Roles & Permissions
+
+### Public Endpoints (No Authentication)
+
+* `GET /api/v1/places/`
+* `GET /api/v1/places/<place_id>`
+
+### Authenticated User Endpoints
+
+* Create and manage **own places**
+* Create, update, and delete **own reviews**
+* Update **own user profile** (excluding email & password)
+
+### Administrator Endpoints
+
+* Create and modify **any user**
+* Modify **email and password** of users
+* Add and modify **amenities**
+* Bypass ownership restrictions for places and reviews
+
+---
+
+## 🗄️ Database & Persistence
+
+### ORM
+
+* **SQLAlchemy** with **Flask-SQLAlchemy**
+
+### Databases
+
+* **SQLite** → Development
+* **MySQL** → Production-ready configuration
+
+### Repository Pattern
+
+* Generic `SQLAlchemyRepository` for CRUD
+* Specialized repositories (e.g. `UserRepository`) for entity-specific queries
+
+---
+
+## 🔗 Entity Relationships
+
+* **User → Place**: One-to-Many
+* **User → Review**: One-to-Many
+* **Place → Review**: One-to-Many
+* **Place ↔ Amenity**: Many-to-Many
+
+All relationships are enforced via **foreign keys** and **association tables**.
+
+---
+
+## 🧩 Database Diagram (Mermaid.js)
+
 
 Below is the ER diagram representing the core entities and their relationships in the HBnB system, created using Mermaid.js:
 
-```mermaid
+```
+mermaid
 
 erDiagram
     USERS {
@@ -122,34 +215,71 @@ erDiagram
 
 ```
 
-## ⚙️ Getting Started
+---
 
-### 🔹 Install dependencies
+## 🔑 Security Measures
 
-We recommend using a virtual environment:
+* Passwords are hashed using **bcrypt**
+* Passwords are never exposed in API responses
+* JWT tokens are required for protected operations
+* Ownership validation for user-generated content
+* Unique constraints enforced at database level
 
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+---
+
+## 🧪 Testing
+
+* API tested using **Postman** and **cURL**
+* Manual testing of:
+
+  * Authentication flow
+  * Authorization checks
+  * Ownership restrictions
+  * Admin privileges
+  * CRUD operations
+
+---
+
+## 🛠️ Installation & Setup
+
+### Requirements
+
+```txt
+flask
+flask-restx
+flask-jwt-extended
+flask-bcrypt
+flask-sqlalchemy
+sqlalchemy
 ```
 
-### 🔹 Run the application
+### Initialize Database
+
+```bash
+flask shell
+>>> from app import db
+>>> db.create_all()
+```
+
+### Run Application
 
 ```bash
 python run.py
 ```
 
-Access the Swagger UI at:
-[http://localhost:5000/api/v1/](http://localhost:5000/api/v1/)
+---
 
-## 🔧 Technologies Used
+## 🚀 Expected Outcome
 
-* Python 3.x
-* Flask
-* Flask-RESTx
-* Repository Pattern
-* Facade Pattern
+By the end of **Part 3**, the HBnB backend:
+
+* Is fully **authenticated and authorized**
+* Uses **persistent relational storage**
+* Follows **clean architecture principles**
+* Is **secure**, **scalable**, and **production-ready**
+* Is well-documented with **ER diagrams and SQL scripts**
+
+---
 
 ## 🧑‍💻 Authors
 
@@ -157,9 +287,13 @@ Access the Swagger UI at:
 * Ali Hassan Almaghrabi
 * Omar Hail Alanzi
 
+---
+
 ## 📚 References
 
-* [Flask Documentation](https://flask.palletsprojects.com/)
-* [Flask-RESTx Docs](https://flask-restx.readthedocs.io/)
-* [Python Project Structure Best Practices](https://docs.python-guide.org/writing/structure/)
-* [Facade Design Pattern](https://refactoring.guru/design-patterns/facade/python/example)
+* Flask Documentation
+* Flask-JWT-Extended
+* Flask-SQLAlchemy
+* SQLAlchemy ORM
+* OWASP Security Best Practices
+* Mermaid.js Documentation
