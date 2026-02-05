@@ -152,7 +152,7 @@ All relationships are enforced via foreign keys and association tables.
 
 The following ER diagram represents the database schema of the HBnB system:
 
-```mermaid
+```
 erDiagram
     USERS {
         string id
@@ -198,6 +198,8 @@ erDiagram
     USERS ||--o{ REVIEWS : writes
     PLACES ||--o{ REVIEWS : has
     PLACES }o--o{ AMENITIES : includes
+```
+
 Security Measures
 
 Passwords are hashed using bcrypt
