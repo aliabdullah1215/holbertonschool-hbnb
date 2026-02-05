@@ -143,7 +143,3 @@ By completing this part, the backend will:
 - User → Review: One-to-Many  
 - Place → Review: One-to-Many  
 - Place ↔ Amenity: Many-to-Many  
-
-All relationships are enforced via foreign keys and association tables.
-
----
