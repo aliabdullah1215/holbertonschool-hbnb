@@ -5,50 +5,50 @@
 This project follows a modular structure to ensure maintainability and scalability. The current setup implements the foundation for the Business Logic Layer (BLL), the API, and the in-memory persistence layer.
 
 ```
-|-- API_TESTING.md
-|-- DATABASE_DIAGRAM.md
-|-- README.md
-|-- app
-|   |-- __init__.py
-|   |-- api
-|   |   |-- __init__.py
-|   |   `-- v1
-|   |       |-- __init__.py
-|   |       |-- amenities.py
-|   |       |-- auth.py
-|   |       |-- places.py
-|   |       |-- protected.py
-|   |       |-- reviews.py
-|   |       `-- users.py
-|   |-- extensions.py
-|   |-- models
-|   |   |-- __init__.py
-|   |   |-- amenity.py
-|   |   |-- base_model.py
-|   |   |-- place.py
-|   |   |-- review.py
-|   |   `-- user.py
-|   |-- persistence
-|   |   |-- __init__.py
-|   |   `-- repository.py
-|   `-- services
-|       |-- __init__.py
-|       |-- facade.py
-|       `-- repositories
-|           |-- __init__.py
-|           `-- user_repository.py
-|-- config.py
-|-- crud_tests.sql
-|-- development.db
-|-- initial_data.sql
-|-- requirements.txt
-|-- run.py
-|-- tables.sql
-`-- test
-    |-- test_amenities.py
-    |-- test_auth.py
-    |-- test_places.py
-    `-- test_reviews.py
+├── API_TESTING.md
+├── DATABASE_DIAGRAM.md
+├── README.md
+├── app
+│   ├── __init__.py
+│   ├── api
+│   │   ├── __init__.py
+│   │   └── v1
+│   │       ├── __init__.py
+│   │       ├── amenities.py
+│   │       ├── auth.py
+│   │       ├── places.py
+│   │       ├── protected.py
+│   │       ├── reviews.py
+│   │       └── users.py
+│   ├── extensions.py
+│   ├── models
+│   │   ├── __init__.py
+│   │   ├── amenity.py
+│   │   ├── base_model.py
+│   │   ├── place.py
+│   │   ├── review.py
+│   │   └── user.py
+│   ├── persistence
+│   │   ├── __init__.py
+│   │   └── repository.py
+│   └── services
+│       ├── __init__.py
+│       ├── facade.py
+│       └── repositories
+│           ├── __init__.py
+│           └── user_repository.py
+├── config.py
+├── crud_tests.sql
+├── development.db
+├── initial_data.sql
+├── requirements.txt
+├── run.py
+├── tables.sql
+└── test
+    ├── test_amenities.py
+    ├── test_auth.py
+    ├── test_places.py
+    └── test_reviews.py
 ```
 
 ## 🧠 Key Concepts Implemented
