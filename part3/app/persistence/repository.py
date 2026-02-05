@@ -1,4 +1,4 @@
-from app import db
+from app.extensions import db  # التغيير هنا لاستخدام ملف الامتدادات
 from sqlalchemy.exc import SQLAlchemyError
 
 class Repository:
@@ -30,7 +30,9 @@ class SQLAlchemyRepository(Repository):
             raise e
 
     def get(self, obj_id):
-        return self.model.query.get(obj_id)
+        # تم التحديث هنا لإزالة تحذير LegacyAPIWarning
+        # الطريقة الحديثة في SQLAlchemy 2.0
+        return db.session.get(self.model, obj_id)
 
     def get_all(self):
         return self.model.query.all()
