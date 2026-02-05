@@ -1,5 +1,4 @@
 erDiagram
-
     USER {
         string id PK
         string first_name
@@ -37,8 +36,8 @@ erDiagram
         string amenity_id FK
     }
 
-    USER ||--o{ PLACE : "owns"
-    USER ||--o{ REVIEW : "writes"
-    PLACE ||--o{ REVIEW : "has"
-    PLACE ||--o{ PLACE_AMENITY : "includes"
+    USER ||--o{ PLACE : owns
+    USER ||--o{ REVIEW : writes
+    PLACE ||--o{ REVIEW : has
+    PLACE ||--o{ PLACE_AMENITY : includes
     AMENITY ||--o{ PLACE_AMENITY : "is present in"
