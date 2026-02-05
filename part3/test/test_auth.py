@@ -1,18 +1,19 @@
 import pytest
 from app import create_app, db
-from app.models.user import User  # تأكد أن هذا هو المسار الصحيح لموديل المستخدم لديك
+from app.models.user import User
 
 @pytest.fixture
 def client():
-    # استخدام اسم البيئة 'testing' كما هو معرف في قاموس الإعدادات بملف config.py
-    app = create_app('testing') 
+    # التعديل الجوهري: تمرير المسار النصي الكامل كما يتوقعه ملف __init__.py لديك
+    # هذا المسار يخبر Flask: اذهب لملف config.py وابحث عن كلاس TestingConfig
+    app = create_app('config.TestingConfig') 
     
     with app.test_client() as client:
         with app.app_context():
-            # إنشاء الجداول في قاعدة بيانات الذاكرة
+            # إنشاء الجداول في قاعدة بيانات الذاكرة (:memory:)
             db.create_all()
 
-            # إنشاء مستخدم مسؤول (Admin) يدويًا لأن قاعدة بيانات الاختبار تبدأ فارغة تمامًا
+            # إنشاء مستخدم مسؤول (Admin) يدويًا لأن قاعدة بيانات الاختبار تبدأ فارغة
             admin_user = User(
                 email="admin@hbnb.io",
                 first_name="Admin",
