@@ -1,3 +1,4 @@
+```mermaid
 erDiagram
     USER {
         string id PK
@@ -41,3 +42,4 @@ erDiagram
     PLACE ||--o{ REVIEW : has
     PLACE ||--o{ PLACE_AMENITY : includes
     AMENITY ||--o{ PLACE_AMENITY : "is present in"
+```
