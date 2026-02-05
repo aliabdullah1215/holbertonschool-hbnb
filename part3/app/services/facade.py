@@ -67,21 +67,18 @@ class HBnBFacade:
         if not place:
             return None
 
-        # معالجة المرافق: تحويل المعرفات إلى كائنات حقيقية
         if 'amenities' in data:
             amenity_ids = data.pop('amenities')
-            place.amenities = []  # تفريغ القائمة الحالية
+            place.amenities = []
             for a_id in amenity_ids:
                 amenity = self.get_amenity(a_id)
                 if amenity:
                     place.amenities.append(amenity)
 
-        # تحديث بقية الحقول (title, description, price, etc.)
         for key, value in data.items():
             if hasattr(place, key):
                 setattr(place, key, value)
 
-        # إرسال الكائن المعدل للـ Repository للـ commit
         return self.place_repo.update(place.id, place)
 
     def delete_place(self, place_id):
@@ -112,6 +109,21 @@ class HBnBFacade:
     def delete_amenity(self, amenity_id):
         return self.amenity_repo.delete(amenity_id)
 
+    # --- New Method for Linking Place and Amenity ---
+    def add_amenity_to_place(self, place_id, amenity_id):
+        """Links an amenity to a specific place"""
+        place = self.get_place(place_id)
+        amenity = self.get_amenity(amenity_id)
+        
+        if not place or not amenity:
+            return None
+            
+        if amenity not in place.amenities:
+            place.amenities.append(amenity)
+            # We pass the updated object back to the repository to commit changes
+            return self.place_repo.update(place.id, place)
+        return place
+
     # -------- Review methods --------
     def create_review(self, data):
         place = self.get_place(data['place_id'])
@@ -140,6 +152,11 @@ class HBnBFacade:
 
     def get_all_reviews(self):
         return self.review_repo.get_all()
+
+    def get_reviews_by_place(self, place_id):
+        """Fetches all reviews for a specific place"""
+        all_reviews = self.get_all_reviews()
+        return [r for r in all_reviews if str(r.place_id) == str(place_id)]
 
     def update_review(self, review_id, data):
         return self.review_repo.update(review_id, data)
