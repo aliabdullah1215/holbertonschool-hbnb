@@ -142,4 +142,12 @@ By completing this part, the backend will:
 - User → Place: One-to-Many  
 - User → Review: One-to-Many  
 - Place → Review: One-to-Many  
-- Place ↔ Amenity: Many-to-Many  
+- Place ↔ Amenity: Many-to-Many
+
+🧑‍💻 Authors
+
+Ali Abdullah Summan
+Ali Hassan Almaghrabi
+Omar Hail Alanzi
+
+...
