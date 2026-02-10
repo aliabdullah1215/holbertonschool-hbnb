@@ -1,0 +1,46 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.logo {
+  height: 40px;
+}
+
+.login-button,
+.details-button,
+button {
+  background-color: #1e3a8a;
+  color: white;
+  padding: 10px;
+  text-decoration: none;
+  border: none;
+  border-radius: 5px;
+}
+
+.place-card,
+.review-card {
+  margin: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.form {
+  max-width: 400px;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+footer {
+  text-align: center;
+  padding: 10px;
+}
