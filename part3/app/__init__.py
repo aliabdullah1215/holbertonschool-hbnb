@@ -1,11 +1,16 @@
 from flask import Flask
 from flask_restx import Api
+from flask_cors import CORS  # التعديل 1: استيراد مكتبة CORS
 from .extensions import db, bcrypt, jwt  # استيراد من الملف الجديد
 from config import config
 
 def create_app(config_class="config.DevelopmentConfig"):
     app = Flask(__name__)
     
+    # تفعيل CORS للسماح لطلبات Part 4 (الواجهة الأمامية) بالوصول للـ API
+    # التعديل 2: تفعيل CORS
+    CORS(app)
+
     # التحقق مما إذا كان المدخل نصاً للمسار أو اسماً للبيئة
     if isinstance(config_class, str):
         if config_class.startswith("config."):
