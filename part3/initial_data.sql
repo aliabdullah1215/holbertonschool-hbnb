@@ -1,20 +1,30 @@
--- =========================
--- Insert Administrator User
--- =========================
-INSERT INTO users (id, first_name, last_name, email, password, is_admin)
-VALUES (
-    '36c9050e-ddd3-4c3b-9731-9f487208bbc1',
-    'Admin',
-    'HBnB',
-    'admin@hbnb.io',
-    '$2b$12$V8e5oFJfD2F6XH0yHkT6LO1gC0B1tHkKXWc5OZbHkL6lI7n9qT5q6', -- مثال hash bcrypt لكلمة admin1234
-    TRUE
-);
+-- تنظيف البيانات القديمة لضمان بداية نظيفة (اختياري)
+DELETE FROM place_amenity;
+DELETE FROM reviews;
+DELETE FROM places;
+DELETE FROM amenities;
+DELETE FROM users;
 
--- =========================
--- Insert Initial Amenities
--- =========================
-INSERT INTO amenities (id, name) VALUES
-('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', 'WiFi'),
-('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', 'Swimming Pool'),
-('c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', 'Air Conditioning');
+-- 1. حقن مستخدم أدمن (Admin)
+-- المعرف (ID) هو UUID ثابت لكي نتمكن من استخدامه في ربط الجداول الأخرى
+INSERT INTO users (id, first_name, last_name, email, password, is_admin)
+VALUES ('user-admin-001', 'Ali', 'Abdullah', 'admin@hbnb.com', 'password123', 1);
+
+-- 2. حقن المرافق (Amenities)
+INSERT INTO amenities (id, name) VALUES 
+('am-001', 'WiFi'), 
+('am-002', 'Swimming Pool'), 
+('am-003', 'Air Conditioning');
+
+-- 3. حقن مكان (Place) مملوك للأدمن
+INSERT INTO places (id, title, description, price, latitude, longitude, owner_id)
+VALUES ('pl-001', 'Luxury Riyadh Villa', 'A beautiful villa with sunset view', 450.00, 24.7136, 46.6753, 'user-admin-001');
+
+-- 4. ربط المكان بالمرافق (Many-to-Many)
+INSERT INTO place_amenity (place_id, amenity_id) VALUES 
+('pl-001', 'am-001'),
+('pl-001', 'am-003');
+
+-- 5. حقن تقييم (Review) للمكان
+INSERT INTO reviews (id, text, rating, user_id, place_id)
+VALUES ('rev-001', 'Amazing place, very clean!', 5, 'user-admin-001', 'pl-001');
