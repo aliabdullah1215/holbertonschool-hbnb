@@ -24,7 +24,8 @@ class ReviewList(Resource):
                 'text': r.text,
                 'rating': r.rating,
                 'place_id': r.place_id,
-                'user_id': r.user_id
+                'user_id': r.user_id,
+                'user_name': f"{r.user.first_name} {r.user.last_name}" if hasattr(r, 'user') and r.user else "Anonymous User"
             } for r in reviews
         ], 200
 
@@ -41,15 +42,19 @@ class ReviewList(Resource):
         # 1. التأكد من وجود المكان
         place = facade.get_place(data['place_id'])
         if not place:
+            print(f"DEBUG: Place {data['place_id']} not found.")
             return {'error': 'Place not found'}, 404
 
-        # 2. منع المالك من تقييم مكانه الخاص (تحويل لـ string لضمان دقة المقارنة)
+        # 2. منع المالك من تقييم مكانه الخاص
+        # قمنا بإضافة طباعة للتيرمينال للتأكد إذا كان هذا هو سبب الـ 400
         if str(place.owner_id) == str(current_user_id):
+            print(f"REJECTED: User {current_user_id} is the owner of place {place.id}")
             return {'error': 'You cannot review your own place.'}, 400
 
         # 3. منع التكرار (مراجعة واحدة لكل مستخدم لكل مكان)
         all_reviews = facade.get_all_reviews()
         if any(str(r.place_id) == str(data['place_id']) and str(r.user_id) == str(current_user_id) for r in all_reviews):
+            print(f"REJECTED: User {current_user_id} already reviewed place {data['place_id']}")
             return {'error': 'You have already reviewed this place.'}, 400
 
         # 4. ربط التقييم بالمستخدم صاحب التوكن آلياً
@@ -62,6 +67,7 @@ class ReviewList(Resource):
                 'message': 'Review created successfully'
             }, 201
         except Exception as e:
+            print(f"DEBUG: Error in facade.create_review: {str(e)}")
             return {'error': str(e)}, 400
 
 @api.route('/<review_id>')
@@ -74,12 +80,14 @@ class ReviewResource(Resource):
         review = facade.get_review(review_id)
         if not review:
             return {'error': 'Review not found'}, 404
+        
         return {
             'id': review.id,
             'text': review.text,
             'rating': review.rating,
             'place_id': review.place_id,
-            'user_id': review.user_id
+            'user_id': review.user_id,
+            'user_name': f"{review.user.first_name} {review.user.last_name}" if hasattr(review, 'user') and review.user else "Anonymous User"
         }, 200
 
     @jwt_required()
@@ -96,7 +104,6 @@ class ReviewResource(Resource):
         if not review:
             return {'error': 'Review not found'}, 404
 
-        # المقارنة باستخدام string
         if not is_admin and str(review.user_id) != str(current_user_id):
             return {'error': 'Unauthorized action'}, 403
 
@@ -122,3 +129,4 @@ class ReviewResource(Resource):
 
         facade.delete_review(review_id)
         return {'message': 'Review deleted successfully'}, 200
+    

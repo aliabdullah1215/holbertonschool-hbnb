@@ -65,6 +65,10 @@ class PlaceResource(Resource):
         if not place:
             return {'error': 'Place not found'}, 404
 
+        # --- تعديل: جلب اسم المضيف الحقيقي ---
+        host = facade.get_user(place.owner_id)
+        host_name = f"{host.first_name} {host.last_name}" if host else "Owner"
+
         return {
             'id': place.id,
             'title': place.title,
@@ -72,10 +76,20 @@ class PlaceResource(Resource):
             'price': place.price,
             'latitude': place.latitude,
             'longitude': place.longitude,
+            'host_name': host_name, # إرسال اسم المضيف للواجهة
             'owner_id': place.owner_id,
-            # إضافة المرافق والتقييمات للعرض
+            # إرسال المرافق بشكل منظم
             'amenities': [{'id': a.id, 'name': a.name} for a in place.amenities],
-            'reviews': [{'id': r.id, 'text': r.text, 'rating': r.rating} for r in place.reviews]
+            # --- تعديل: إرسال التقييمات مع أسماء أصحابها ---
+            'reviews': [
+                {
+                    'id': r.id, 
+                    'text': r.text, 
+                    'rating': r.rating,
+                    # جلب الاسم الكامل من كائن المستخدم المرتبط بالتقييم
+                    'user_name': f"{r.user.first_name} {r.user.last_name}" if hasattr(r, 'user') and r.user else "Anonymous User"
+                } for r in place.reviews
+            ]
         }, 200
 
     @jwt_required()
@@ -96,7 +110,6 @@ class PlaceResource(Resource):
         updated_place = facade.update_place(place_id, data)
         return {'id': updated_place.id, 'message': 'Place updated successfully'}, 200
 
-# --- الجزء الجديد المضاف لربط المرافق ---
 @api.route('/<place_id>/amenities/<amenity_id>')
 class PlaceAmenityResource(Resource):
     @jwt_required()
@@ -112,7 +125,6 @@ class PlaceAmenityResource(Resource):
         if not place:
             return {'error': 'Place not found'}, 404
         
-        # التأكد من الصلاحية
         if not is_admin and place.owner_id != current_user_id:
             return {'error': 'Unauthorized action'}, 403
 
@@ -122,3 +134,4 @@ class PlaceAmenityResource(Resource):
 
         facade.add_amenity_to_place(place_id, amenity_id)
         return {'message': 'Amenity added to place successfully'}, 200
+    
