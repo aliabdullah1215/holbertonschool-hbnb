@@ -2,40 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>HBnB - Places</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HBnB - Available Places</title>
   <link rel="icon" href="images/icon.png">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <header>
-    <img src="images/logo.png" class="logo">
-    <a href="login.html" class="login-button" id="login-link">Login</a>
+    <div class="header-container">
+      <img src="images/logo.png" alt="HBnB Logo" class="logo">
+      <a href="login.html" class="login-button" id="login-link">Login</a>
+    </div>
   </header>
 
-  <nav>
-    <a href="index.html">Home</a>
-  </nav>
-
   <main>
-    <div>
-      <label for="price-filter">Filter by price:</label>
-      <select id="price-filter">
-        <option value="all">All</option>
-        <option value="10">10</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
-    </div>
+    <section class="hero">
+      <h1>Available Places</h1>
+      <div class="filter-section">
+        <label for="price-filter">Max Price:</label>
+        <select id="price-filter">
+          <option value="all">All</option>
+          <option value="10">10</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </section>
 
-    <section id="places-list" class="places">
+    <section id="places-list" class="places-grid">
     </section>
   </main>
 
   <footer>
-    <p>All rights reserved</p>
+    <p>© 2024 HBnB Evolution. All rights reserved.</p>
   </footer>
 
   <script src="js/places.js"></script>
 </body>
 </html>
-
