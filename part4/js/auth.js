@@ -17,16 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 baseUrl = 'http://127.0.0.1:5000';
             }
             
-            const API_URL = `${baseUrl}/api/v1/auth/login`;
+          // هذا الكود يكتشف أين يعمل الفرونت اند ويخمن رابط الباك اند تلقائياً
+const getBaseUrl = () => {
+    const { origin } = window.location;
+    
+    // إذا كنت في Codespaces، سيقوم بتبديل منفذ الفرونت اند (3000 أو 5500) بمنفذ الباك اند (5000)
+    if (origin.includes('github.dev') || origin.includes('app.github.dev')) {
+        return origin.replace(/-(3000|5500|8080)\./, '-5000.');
+    }
+    
+    // إذا كنت تعمل محلياً على جهازك
+    return 'http://127.0.0.1:5000';
+};
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify({ email, password })
-                });
+const API_URL = `${getBaseUrl()}/api/v1`;
 
                 if (response.ok) {
                     const data = await response.json();
