@@ -11,19 +11,20 @@
   <header>
     <div class="header-container">
       <img src="images/logo.png" alt="HBnB Logo" class="logo">
+      <a href="#" class="login-button" id="login-link">Logout</a>
     </div>
   </header>
 
-  <main class="container">
-    <section class="review-form-container">
-      <h1 id="place-name-header">Reviewing: Loading...</h1>
+  <main>
+    <div class="review-container">
+      <h1 id="place-name-header">Reviewing: Beautiful Beach House</h1>
       
-      <div class="card add-review-card">
+      <section class="card add-review-card">
         <h2>Add a Review</h2>
         <form id="review-form">
           <div class="form-group">
             <label for="review-text">Your Review:</label>
-            <textarea id="review-text" rows="6" required></textarea>
+            <textarea id="review-text" rows="4" placeholder="Write your experience here..." required></textarea>
           </div>
           
           <div class="form-group">
@@ -39,8 +40,8 @@
           
           <button type="submit" class="submit-button">Submit Review</button>
         </form>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <footer>
